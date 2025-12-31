@@ -1,0 +1,21 @@
+{
+  "warehouses": [
+    {
+      "name": "Uribe",
+      "location": "Fabrica",
+      "id": "74a5413b-f7b7-4862-bf1b-0b8bd519480b"
+    }
+  ],
+  "products": [
+    {
+      "name": "Helado",
+      "description": null,
+      "uom": "LITROS",
+      "minStock": 5,
+      "isFinishedGood": true,
+      "id": "7c2c182f-5ec6-492d-b26e-bf461538e9ef"
+    }
+  ],
+  "movements": [],
+  "recipes": []
+}

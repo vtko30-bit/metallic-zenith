@@ -1,0 +1,84 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--space-lg);
+}
+
+.warehouseCard {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.warehouseCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.cardHeader {
+  padding: var(--space-md);
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.cardHeader h3 {
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+
+.stockList {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stockItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid transparent;
+}
+
+.stockItem:hover {
+  background: #f1f5f9;
+  border-color: var(--border);
+}
+
+.itemIcon { color: var(--text-muted); }
+.itemName { flex: 1; font-size: 0.9rem; }
+.itemQty { font-weight: 700; font-size: 0.9rem; }
+
+.lowStock {
+  color: var(--danger);
+  position: relative;
+}
+
+.lowStock::after {
+  content: '⚠️';
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+  padding: var(--space-md);
+}
