@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getProducts, getWarehouses, getRecipes } from '@/app/actions';
 import styles from './page.module.css';
 import ProductionForm from '@/components/Production/ProductionForm';
