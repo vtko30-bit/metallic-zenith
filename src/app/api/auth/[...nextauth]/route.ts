@@ -58,6 +58,18 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
   },
+  debug: process.env.NODE_ENV === 'development' || true, // Force true to debug Vercel
+  logger: {
+    error: (code, metadata) => {
+      console.error('NEXTAUTH ERROR:', code, metadata);
+    },
+    warn: (code) => {
+      console.warn('NEXTAUTH WARN:', code);
+    },
+    debug: (code, metadata) => {
+      console.log('NEXTAUTH DEBUG:', code, metadata);
+    }
+  },
   session: {
     strategy: 'jwt',
   }
