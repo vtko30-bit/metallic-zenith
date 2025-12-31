@@ -1,8 +1,8 @@
-export const dynamic = 'force-dynamic';
 import { getStockByWarehouse, getProducts, getWarehouses } from '@/app/actions';
 import styles from './page.module.css';
 import InventoryCountForm from '@/components/InventoryCount/InventoryCountForm';
 
+export const dynamic = 'force-dynamic';
 
 export default async function InventoryCountPage() {
   const [stock, products, warehouses] = await Promise.all([

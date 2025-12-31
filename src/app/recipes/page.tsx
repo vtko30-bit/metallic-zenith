@@ -1,8 +1,9 @@
-export const dynamic = 'force-dynamic';
 import { getRecipes, getProducts } from '@/app/actions';
 import styles from './page.module.css';
 import RecipeList from '@/components/Recipe/RecipeList';
 import RecipeForm from '@/components/Recipe/RecipeForm';
+
+export const dynamic = 'force-dynamic';
 
 export default async function RecipesPage() {
   const [recipes, products] = await Promise.all([
