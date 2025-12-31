@@ -1,7 +1,8 @@
-export const dynamic = 'force-dynamic';
 import { getProducts, getWarehouses, getRecipes } from '@/app/actions';
 import styles from './page.module.css';
 import ProductionForm from '@/components/Production/ProductionForm';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const [products, warehouses, recipes] = await Promise.all([

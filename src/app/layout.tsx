@@ -4,6 +4,7 @@ import "./globals.css";
 import styles from "./layout.module.css";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Providers from "@/components/Providers";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             </main>
           </div>
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
