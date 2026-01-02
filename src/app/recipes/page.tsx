@@ -1,3 +1,7 @@
+import { getRecipes, getProducts } from '@/app/actions';
+import styles from './page.module.css';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import RecipesClient from './RecipesClient';
 
 export const dynamic = 'force-dynamic';
