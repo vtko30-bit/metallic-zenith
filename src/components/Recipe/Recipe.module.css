@@ -122,21 +122,40 @@
   width: 100%;
 }
 
-.editBtn {
+.actionsCell {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.editBtn, .deleteBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.6rem;
   background: white;
-  color: var(--primary);
-  border: 1px solid var(--primary-light);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: var(--transition);
 }
 
+.editBtn {
+  color: var(--primary);
+  border: 1px solid var(--primary-light);
+}
+
 .editBtn:hover {
   background: var(--primary-light);
+  transform: scale(1.1);
+}
+
+.deleteBtn {
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
   transform: scale(1.1);
 }
 

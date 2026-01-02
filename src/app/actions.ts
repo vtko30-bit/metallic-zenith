@@ -254,6 +254,39 @@ export async function updateRecipe(id: string, data: {
   return result;
 }
 
+export async function deleteRecipe(id: string) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Get the recipe to find the product ID
+    const recipe = await tx.recipe.findUnique({
+      where: { id }
+    });
+    if (!recipe) throw new Error("Receta no encontrada");
+
+    // 2. Delete ingredients explicitly
+    await tx.recipeIngredient.deleteMany({
+      where: { recipeId: id }
+    });
+
+    // 3. Delete recipe
+    await tx.recipe.delete({
+      where: { id }
+    });
+
+    // 4. Delete the associated product (finished good)
+    await tx.product.delete({
+      where: { id: recipe.productId }
+    });
+
+    return { success: true };
+  });
+
+  revalidatePath('/recipes');
+  revalidatePath('/products');
+  return result;
+}
+
 // Production Action
 export async function produceProduct(productId: string, quantity: number, warehouseId: string) {
   const recipe = await prisma.recipe.findUnique({
