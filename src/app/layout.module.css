@@ -30,3 +30,14 @@
   overflow-y: auto;
   padding: var(--space-lg);
 }
+
+@media (max-width: 768px) {
+  .header {
+    padding-left: 4.5rem; /* Space for mobile hamburger */
+    padding-right: var(--space-sm);
+  }
+
+  .scrollArea {
+    padding: var(--space-md);
+  }
+}

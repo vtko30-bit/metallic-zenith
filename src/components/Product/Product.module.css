@@ -14,6 +14,13 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 768px) {
+  .formHorizontal {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .field {
   flex: 2;
   min-width: 150px;
@@ -22,6 +29,13 @@
 .fieldSmall {
   flex: 1;
   min-width: 80px;
+}
+
+@media (max-width: 768px) {
+  .field, .fieldSmall {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .field input, .select {
@@ -175,6 +189,12 @@
   border-radius: var(--radius);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .listWrapper {
+    padding: var(--space-md);
+  }
 }
 
 /* Tabs */

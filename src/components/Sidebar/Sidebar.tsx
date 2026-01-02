@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -13,7 +14,9 @@ import {
   TrendingUp,
   CheckCircle,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  Menu,
+  X
 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
@@ -30,16 +33,33 @@ const menuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Close sidebar when pathname changes (mobile)
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   // Hide sidebar on login page
   if (pathname === '/auth/login') return null;
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logo}>
-        <TrendingUp className={styles.logoIcon} />
-        <span>WMS Pro</span>
-      </div>
+    <>
+      <button 
+        className={styles.mobileToggle} 
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle Menu"
+      >
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {isOpen && <div className={styles.backdrop} onClick={() => setIsOpen(false)} />}
+
+      <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
+        <div className={styles.logo}>
+          <TrendingUp className={styles.logoIcon} />
+          <span>WMS Pro</span>
+        </div>
 
       <nav className={styles.nav}>
         {menuItems.map((item) => {
@@ -78,5 +98,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

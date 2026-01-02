@@ -20,6 +20,13 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 768px) {
+  .formTopRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .field {
   flex: 2;
   min-width: 200px;
@@ -90,6 +97,22 @@
   padding: 0.5rem 0;
 }
 
+@media (max-width: 768px) {
+  .ingredientRow {
+    flex-direction: column;
+    align-items: stretch;
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-md) 0;
+    gap: var(--space-md);
+  }
+
+  /* Make sure remove button isn't weirdly positioned on mobile */
+  .removeBtn {
+    align-self: flex-end;
+    margin-top: 0 !important;
+  }
+}
+
 .fieldItem {
   display: flex;
   flex-direction: column;
@@ -127,6 +150,13 @@
   font-weight: 600;
   font-size: 0.9rem;
   align-self: flex-end;
+}
+
+@media (max-width: 768px) {
+  .submitBtn {
+    align-self: stretch;
+    width: 100%;
+  }
 }
 
 .submitBtn:hover:not(:disabled) {
