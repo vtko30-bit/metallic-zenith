@@ -4,10 +4,6 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-if (!process.env.NEXTAUTH_SECRET) {
-  console.warn('CRITICAL: NEXTAUTH_SECRET is not defined in process.env');
-}
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
@@ -63,18 +59,6 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development' || true, // Force true to debug Vercel
-  logger: {
-    error: (code, metadata) => {
-      console.error('NEXTAUTH ERROR:', code, metadata);
-    },
-    warn: (code) => {
-      console.warn('NEXTAUTH WARN:', code);
-    },
-    debug: (code, metadata) => {
-      console.log('NEXTAUTH DEBUG:', code, metadata);
-    }
-  },
   session: {
     strategy: 'jwt',
   }
