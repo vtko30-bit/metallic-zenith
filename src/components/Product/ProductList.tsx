@@ -7,9 +7,10 @@ import { Package } from 'lucide-react';
 
 interface Props {
   initialProducts: Product[];
+  onProductClick: (product: Product) => void;
 }
 
-export default function ProductList({ initialProducts }: Props) {
+export default function ProductList({ initialProducts, onProductClick }: Props) {
   const [tab, setTab] = useState<'MP' | 'PT'>('MP');
 
   const filteredProducts = initialProducts.filter(p => 
@@ -54,7 +55,12 @@ export default function ProductList({ initialProducts }: Props) {
           </thead>
           <tbody>
             {filteredProducts.map((p) => (
-              <tr key={p.id}>
+              <tr 
+                key={p.id} 
+                onClick={() => onProductClick(p)}
+                className={styles.clickableRow}
+                title="Ver detalle del producto"
+              >
                 <td className={styles.pName}>
                   <Package size={16} className={styles.pIcon} />
                   {p.name}

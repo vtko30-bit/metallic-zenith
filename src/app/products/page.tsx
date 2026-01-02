@@ -1,6 +1,6 @@
-import { getProducts } from '@/app/actions';
+import { getProducts, getWarehouses, getStockByWarehouse } from '@/app/actions';
 import styles from './page.module.css';
-import ProductList from '@/components/Product/ProductList';
+import ProductsClient from './ProductsClient';
 import ProductForm from '@/components/Product/ProductForm';
 import ProductImportButton from '@/components/Excel/ProductImportButton';
 import ExcelExportButton from '@/components/Excel/ExcelExportButton';
@@ -11,19 +11,21 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 export const dynamic = 'force-dynamic';
 
 export default async function ProductsPage() {
-  const [products, session] = await Promise.all([
+  const [products, session, warehouses, stock] = await Promise.all([
     getProducts(),
-    getServerSession(authOptions)
+    getServerSession(authOptions),
+    getWarehouses(),
+    getStockByWarehouse()
   ]);
 
-  const isAdmin = (session?.user as any)?.role === 'ADMIN';
+  const isAdmin = (session?.user as { role?: string })?.role === 'ADMIN';
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.titleGroup}>
-          <h2>Crear Producto</h2>
-          <p>Gestiona los insumos y productos de tu inventario</p>
+          <h2>Gestión de Catálogo</h2>
+          <p>Consulta detalles, existencias y movimientos de tus productos</p>
         </div>
         {isAdmin && (
           <div className={styles.actions}>
@@ -35,7 +37,11 @@ export default async function ProductsPage() {
 
       <div className={styles.content}>
         {isAdmin && <ProductForm />}
-        <ProductList initialProducts={products} />
+        <ProductsClient 
+          products={products} 
+          warehouses={warehouses} 
+          stock={stock} 
+        />
       </div>
     </div>
   );

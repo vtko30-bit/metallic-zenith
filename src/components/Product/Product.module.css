@@ -124,6 +124,24 @@
   border-bottom: 2px solid var(--border);
 }
 
+.table tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: var(--transition);
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:hover {
+  background: var(--bg-main);
+  transform: scale(1.002);
+}
+
+.clickableRow:active {
+  background: var(--primary-light);
+}
+
 .table td {
   padding: var(--space-sm) var(--space-md);
   border-bottom: 1px solid var(--border);

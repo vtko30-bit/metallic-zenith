@@ -9,12 +9,12 @@ import bcrypt from 'bcryptjs';
 
 async function isAdmin() {
   const session = await getServerSession(authOptions);
-  return (session?.user as any)?.role === 'ADMIN';
+  return (session?.user as { role?: string })?.role === 'ADMIN';
 }
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
-  return (session?.user as any)?.id;
+  return (session?.user as { id?: string })?.id;
 }
 
 // Warehouse Actions
@@ -93,6 +93,34 @@ export async function getMovements() {
     ...m,
     date: m.date.toISOString(),
     userName: m.user?.name || 'Sistema'
+  }));
+}
+
+export async function getProductMovements(productId: string) {
+  const movements = await prisma.movement.findMany({
+    where: {
+      items: {
+        some: { productId }
+      }
+    },
+    include: {
+      items: {
+        where: { productId }
+      },
+      user: {
+        select: { name: true }
+      }
+    },
+    orderBy: { date: 'desc' },
+    take: 10
+  });
+
+  return movements.map(m => ({
+    ...m,
+    date: m.date.toISOString(),
+    userName: m.user?.name || 'Sistema',
+    // We only care about the quantity of the specific product in this context
+    quantity: m.items[0]?.quantity || 0
   }));
 }
 
@@ -177,7 +205,13 @@ export async function addRecipe(data: {
   const result = await prisma.$transaction(async (tx) => {
     let finalProductId = data.productId;
 
-    if (!finalProductId) {
+    if (finalProductId) {
+      // 1b. Mark existing product as finished good
+      await tx.product.update({
+        where: { id: finalProductId },
+        data: { isFinishedGood: true }
+      });
+    } else {
       if (!data.productName) throw new Error("Se requiere nombre para nuevo producto");
       // 1. Create the product
       const product = await tx.product.create({
@@ -190,12 +224,6 @@ export async function addRecipe(data: {
         }
       });
       finalProductId = product.id;
-    } else {
-      // 1b. Mark existing product as finished good
-      await tx.product.update({
-        where: { id: finalProductId },
-        data: { isFinishedGood: true }
-      });
     }
 
     // 2. Create the recipe linked to the product
