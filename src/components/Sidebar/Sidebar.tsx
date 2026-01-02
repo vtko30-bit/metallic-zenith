@@ -13,6 +13,7 @@ import {
   CookingPot,
   TrendingUp,
   CheckCircle,
+  Users,
   LogOut,
   User as UserIcon,
   Menu,
@@ -28,6 +29,7 @@ const menuItems = [
   { icon: CookingPot, label: 'Recetas', href: '/recipes' },
   { icon: ClipboardList, label: 'Inventario', href: '/inventory' },
   { icon: CheckCircle, label: 'Toma Invent.', href: '/inventory-count' },
+  { icon: Users, label: 'Usuarios', href: '/users', adminOnly: true },
 ];
 
 export default function Sidebar() {
@@ -62,19 +64,21 @@ export default function Sidebar() {
         </div>
 
       <nav className={styles.nav}>
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href} 
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-            >
-              <item.icon size={20} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        {menuItems
+          .filter(item => !item.adminOnly || (session?.user as any)?.role === 'ADMIN')
+          .map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href} 
+                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+              >
+                <item.icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
       </nav>
 
       <div className={styles.footer}>

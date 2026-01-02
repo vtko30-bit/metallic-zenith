@@ -3,6 +3,14 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { MovementType, UnitOfMeasure as Uom } from '@/types';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]/route';
+import bcrypt from 'bcryptjs';
+
+async function isAdmin() {
+  const session = await getServerSession(authOptions);
+  return (session?.user as any)?.role === 'ADMIN';
+}
 
 // Warehouse Actions
 export async function getWarehouses() {
@@ -12,6 +20,8 @@ export async function getWarehouses() {
 }
 
 export async function addWarehouse(data: { name: string; location?: string }) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
+  
   const warehouse = await prisma.warehouse.create({
     data
   });
@@ -34,6 +44,8 @@ export async function addProduct(data: {
   price: number;
   isFinishedGood: boolean;
 }) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
+
   const product = await prisma.product.create({
     data: {
       ...data,
@@ -45,6 +57,8 @@ export async function addProduct(data: {
 }
 
 export async function importProducts(productsData: any[]) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
+
   const created = await prisma.product.createMany({
     data: productsData.map(p => ({
       name: p.name,
@@ -145,6 +159,8 @@ export async function addRecipe(data: {
   uom: string;
   ingredients: { productId: string; quantity: number }[];
 }) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
+
   const result = await prisma.$transaction(async (tx) => {
     // 1. Create the product
     const product = await tx.product.create({
@@ -254,4 +270,50 @@ export async function updateStockAdjustment(warehouseId: string, itemAdjustments
   revalidatePath('/movements');
   revalidatePath('/inventory');
   revalidatePath('/');
+}
+
+// User Management Actions
+export async function getUsers() {
+  if (!(await isAdmin())) throw new Error("Acceso denegado");
+  return await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true
+    },
+    orderBy: { name: 'asc' }
+  });
+}
+
+export async function addUser(data: { name: string; email: string; password?: string; role: string }) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado");
+
+  let hashedPassword = undefined;
+  if (data.password) {
+    hashedPassword = await bcrypt.hash(data.password, 10);
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      role: data.role
+    }
+  });
+
+  revalidatePath('/users');
+  return user;
+}
+
+export async function deleteUser(id: string) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado");
+  
+  // Prevent deleting the last admin if possible, but for now simple delete
+  await prisma.user.delete({
+    where: { id }
+  });
+  
+  revalidatePath('/users');
 }
