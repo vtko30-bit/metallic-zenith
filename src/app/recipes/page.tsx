@@ -1,10 +1,4 @@
-import { getRecipes, getProducts } from '@/app/actions';
-import styles from './page.module.css';
-import RecipeList from '@/components/Recipe/RecipeList';
-import RecipeForm from '@/components/Recipe/RecipeForm';
-
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import RecipesClient from './RecipesClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,15 +15,16 @@ export default async function RecipesPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.titleGroup}>
-          <h2>Crear Receta</h2>
-          <p>Define la composición de tus productos terminados</p>
+          <h2>Gestión de Recetas</h2>
+          <p>Define y edita la composición de tus productos terminados</p>
         </div>
       </header>
 
-      <div className={styles.content}>
-        {isAdmin && <RecipeForm products={products} />}
-        <RecipeList recipes={recipes} products={products} />
-      </div>
+      <RecipesClient 
+        recipes={recipes} 
+        products={products} 
+        isAdmin={isAdmin} 
+      />
     </div>
   );
 }

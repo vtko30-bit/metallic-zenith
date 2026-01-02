@@ -2,14 +2,16 @@
 
 import { Recipe, Product } from '@/types';
 import styles from './Recipe.module.css';
-import { CookingPot, ChevronRight } from 'lucide-react';
+import { CookingPot, ChevronRight, Edit2 } from 'lucide-react';
 
 interface Props {
   readonly recipes: Recipe[];
   readonly products: Product[];
+  readonly isAdmin: boolean;
+  readonly onEdit: (recipe: Recipe) => void;
 }
 
-export default function RecipeList({ recipes, products }: Props) {
+export default function RecipeList({ recipes, products, isAdmin, onEdit }: Props) {
   const getProductName = (id: string) => products.find(p => p.id === id)?.name || 'Desconocido';
   const getProductUom = (id: string) => products.find(p => p.id === id)?.uom || '';
 
@@ -28,6 +30,7 @@ export default function RecipeList({ recipes, products }: Props) {
           <tr>
             <th>Producto Final</th>
             <th>Composición de la Fórmula</th>
+            {isAdmin && <th>Acciones</th>}
           </tr>
         </thead>
         <tbody>
@@ -50,6 +53,17 @@ export default function RecipeList({ recipes, products }: Props) {
                   ))}
                 </div>
               </td>
+              {isAdmin && (
+                <td>
+                  <button 
+                    onClick={() => onEdit(r)}
+                    className={styles.editBtn}
+                    title="Editar Receta"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

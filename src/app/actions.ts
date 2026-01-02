@@ -207,6 +207,53 @@ export async function addRecipe(data: {
   return result;
 }
 
+export async function updateRecipe(id: string, data: {
+  productName: string;
+  ingredients: { productId: string; quantity: number }[];
+}) {
+  if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Get the existing recipe to find the product ID
+    const existing = await tx.recipe.findUnique({
+      where: { id },
+      include: { product: true }
+    });
+    if (!existing) throw new Error("Receta no encontrada");
+
+    // 2. Update the product name
+    await tx.product.update({
+      where: { id: existing.productId },
+      data: { name: data.productName }
+    });
+
+    // 3. Delete existing ingredients
+    await tx.recipeIngredient.deleteMany({
+      where: { recipeId: id }
+    });
+
+    // 4. Create new ingredients
+    const updatedRecipe = await tx.recipe.update({
+      where: { id },
+      data: {
+        ingredients: {
+          create: data.ingredients.map(ing => ({
+            productId: ing.productId,
+            quantity: ing.quantity
+          }))
+        }
+      },
+      include: { ingredients: true }
+    });
+
+    return updatedRecipe;
+  });
+
+  revalidatePath('/recipes');
+  revalidatePath('/products');
+  return result;
+}
+
 // Production Action
 export async function produceProduct(productId: string, quantity: number, warehouseId: string) {
   const recipe = await prisma.recipe.findUnique({

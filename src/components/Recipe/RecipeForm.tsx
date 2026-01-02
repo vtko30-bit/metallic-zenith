@@ -1,25 +1,44 @@
 'use client';
 
-import { useState } from 'react';
-import { addRecipe } from '@/app/actions';
-import { Product } from '@/types';
+import { useState, useEffect } from 'react';
+import { addRecipe, updateRecipe } from '@/app/actions';
+import { Product, Recipe } from '@/types';
 import styles from './Recipe.module.css';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, X } from 'lucide-react';
 
 interface Props {
   readonly products: Product[];
+  readonly initialData?: Recipe | null;
+  readonly onCancel?: () => void;
 }
 
 interface LocalIngredient {
+  key: string;
   productId: string;
   quantity: number | string;
   selectedUom: string;
 }
 
-export default function RecipeForm({ products }: Props) {
+export default function RecipeForm({ products, initialData, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
+  const [productName, setProductName] = useState('');
   const [ingredients, setIngredients] = useState<LocalIngredient[]>([]);
   const rawMaterials = products.filter(p => !p.isFinishedGood);
+
+  useEffect(() => {
+    if (initialData) {
+      setProductName(initialData.product?.name || '');
+      setIngredients(initialData.ingredients.map((ing, idx) => ({
+        key: `${ing.productId}-${idx}-${Date.now()}`,
+        productId: ing.productId,
+        quantity: ing.quantity,
+        selectedUom: ing.product?.uom || products.find(p => p.id === ing.productId)?.uom || 'UNIDAD'
+      })));
+    } else {
+      setProductName('');
+      setIngredients([]);
+    }
+  }, [initialData, products]);
 
   const UOM_OPTIONS = ['UNIDAD', 'KILOS', 'GRAMOS', 'LITROS', 'MILILITROS'];
 
@@ -33,7 +52,7 @@ export default function RecipeForm({ products }: Props) {
   };
 
   function addIngredient() {
-    setIngredients([...ingredients, { productId: '', quantity: '', selectedUom: '' }]);
+    setIngredients([...ingredients, { key: `new-${Date.now()}`, productId: '', quantity: '', selectedUom: '' }]);
   }
 
   function removeIngredient(index: number) {
@@ -57,10 +76,9 @@ export default function RecipeForm({ products }: Props) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (ingredients.length === 0) return alert('Debes agregar al menos un ingrediente');
+    if (!productName) return alert('Falta el nombre del producto');
     
     setLoading(true);
-    const formData = new FormData(e.currentTarget);
-    const productName = formData.get('productName') as string;
 
     try {
       // Convert all ingredients to their product's base unit
@@ -73,13 +91,23 @@ export default function RecipeForm({ products }: Props) {
         };
       });
 
-      await addRecipe({
-        productName,
-        uom: 'UNIDAD',
-        ingredients: processedIngredients
-      });
+      if (initialData) {
+        await updateRecipe(initialData.id, {
+          productName,
+          ingredients: processedIngredients
+        });
+        alert('Receta actualizada');
+        if (onCancel) onCancel();
+      } else {
+        await addRecipe({
+          productName,
+          uom: 'UNIDAD',
+          ingredients: processedIngredients
+        });
+        alert('Receta guardada');
+      }
       setIngredients([]);
-      (e.target as HTMLFormElement).reset();
+      setProductName('');
     } catch (error) {
       console.error(error);
       alert('Error al guardar receta');
@@ -93,11 +121,14 @@ export default function RecipeForm({ products }: Props) {
       <form onSubmit={handleSubmit} className={styles.formHorizontal}>
         <div className={styles.formTopRow}>
           <div className={styles.field}>
-            <label htmlFor="productName" className={styles.label}>Nuevo Producto</label>
+            <label htmlFor="productName" className={styles.label}>
+              {initialData ? 'Editar Nombre' : 'Nuevo Producto'}
+            </label>
             <input 
               id="productName"
               type="text" 
-              name="productName" 
+              value={productName} 
+              onChange={(e) => setProductName(e.target.value)}
               placeholder="Ej: Pasta de Tomate" 
               required 
               className={styles.input} 
@@ -116,7 +147,7 @@ export default function RecipeForm({ products }: Props) {
           {ingredients.map((ing, index) => {
             const rowId = `ing-${index}`;
             return (
-              <div key={index} className={styles.ingredientRow}>
+              <div key={ing.key} className={styles.ingredientRow}>
                 <div className={styles.fieldItem}>
                   <label htmlFor={`${rowId}-qty`} className={styles.label}>Cantidad</label>
                   <input 
@@ -177,10 +208,19 @@ export default function RecipeForm({ products }: Props) {
           )}
         </div>
 
-        <button type="submit" disabled={loading} className={styles.submitBtn}>
-          <Save size={18} />
-          {loading ? '...' : 'Guardar Receta'}
-        </button>
+        <div className={styles.formActions}>
+          <button type="submit" disabled={loading} className={styles.submitBtn}>
+            <Save size={18} />
+            {loading ? '...' : initialData ? 'Guardar Cambios' : 'Guardar Receta'}
+          </button>
+          
+          {initialData && (
+            <button type="button" onClick={onCancel} className={styles.cancelBtn}>
+              <X size={18} />
+              Cancelar
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
