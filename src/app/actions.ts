@@ -168,27 +168,39 @@ export async function getRecipes() {
 
 export async function addRecipe(data: {
   productName: string;
+  productId?: string;
   uom: string;
   ingredients: { productId: string; quantity: number }[];
 }) {
   if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
 
   const result = await prisma.$transaction(async (tx) => {
-    // 1. Create the product
-    const product = await tx.product.create({
-      data: {
-        name: data.productName,
-        uom: data.uom as Uom,
-        isFinishedGood: true,
-        minStock: 0,
-        price: 0
-      }
-    });
+    let finalProductId = data.productId;
+
+    if (finalProductId) {
+      // 1. Update existing product to be a finished good
+      await tx.product.update({
+        where: { id: finalProductId },
+        data: { isFinishedGood: true }
+      });
+    } else {
+      // 1. Create the product
+      const product = await tx.product.create({
+        data: {
+          name: data.productName,
+          uom: data.uom as Uom,
+          isFinishedGood: true,
+          minStock: 0,
+          price: 0
+        }
+      });
+      finalProductId = product.id;
+    }
 
     // 2. Create the recipe linked to the product
     const recipe = await tx.recipe.create({
       data: {
-        productId: product.id,
+        productId: finalProductId,
         ingredients: {
           create: data.ingredients.map(ing => ({
             productId: ing.productId,
