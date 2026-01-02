@@ -1,6 +1,5 @@
 import { getProducts, getWarehouses, getRecipes } from '@/app/actions';
 import styles from './page.module.css';
-import ProductionForm from '@/components/Production/ProductionForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,27 +10,16 @@ export default async function DashboardPage() {
     getRecipes()
   ]);
 
-  const finishedGoodsWithRecipes = products.filter(p => 
-    p.isFinishedGood && recipes.some(r => r.productId === p.id)
-  );
-
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.titleGroup}>
-          <h2>Consola de Producción</h2>
-          <p>Inicia el proceso de fabricación y descuenta inventario</p>
+          <h2>Resumen del Sistema</h2>
+          <p>Vista general del inventario y operaciones</p>
         </div>
       </header>
 
       <div className={styles.content}>
-        <section className={styles.prodSection}>
-          <ProductionForm 
-            products={finishedGoodsWithRecipes} 
-            warehouses={warehouses} 
-          />
-        </section>
-        
         <section className={styles.statsSection}>
           <div className={styles.statCard}>
             <h4>Total Productos</h4>

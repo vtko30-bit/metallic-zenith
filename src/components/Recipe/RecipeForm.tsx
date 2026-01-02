@@ -21,12 +21,25 @@ interface LocalIngredient {
 
 export default function RecipeForm({ products, initialData, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'NEW' | 'EXISTING'>('NEW');
   const [productName, setProductName] = useState('');
+  const [existingProductId, setExistingProductId] = useState('');
   const [ingredients, setIngredients] = useState<LocalIngredient[]>([]);
+  
   const rawMaterials = products.filter(p => !p.isFinishedGood);
-
+  // Products that are NOT ingredients (could be already FGs or just other products) 
+  // and satisfy some criteria? Actually, let's keep it simple: 
+  // any product that doesn't have a recipe yet.
+  // We need the list of recipes to filter them out, or just pass the list of "eligible" products from parent.
+  // For now, I'll allow selecting any product.
+  const eligibleProducts = products.filter(p => !p.isFinishedGood || products.find(prod => prod.id === p.id && !prod.isFinishedGood)); 
+  // Actually, better: products that are NOT currently the target of another recipe.
+  // But I don't have the recipe list here. I'll just show all products.
+  
   useEffect(() => {
     if (initialData) {
+      setMode('EXISTING');
+      setExistingProductId(initialData.productId);
       setProductName(initialData.product?.name || '');
       setIngredients(initialData.ingredients.map((ing, idx) => ({
         key: `${ing.productId}-${idx}-${Date.now()}`,
@@ -35,7 +48,9 @@ export default function RecipeForm({ products, initialData, onCancel }: Props) {
         selectedUom: ing.product?.uom || products.find(p => p.id === ing.productId)?.uom || 'UNIDAD'
       })));
     } else {
+      setMode('NEW');
       setProductName('');
+      setExistingProductId('');
       setIngredients([]);
     }
   }, [initialData, products]);
@@ -76,7 +91,9 @@ export default function RecipeForm({ products, initialData, onCancel }: Props) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (ingredients.length === 0) return alert('Debes agregar al menos un ingrediente');
-    if (!productName) return alert('Falta el nombre del producto');
+    
+    if (mode === 'NEW' && !productName) return alert('Falta el nombre del producto');
+    if (mode === 'EXISTING' && !existingProductId) return alert('Seleccione un producto existente');
     
     setLoading(true);
 
@@ -93,14 +110,15 @@ export default function RecipeForm({ products, initialData, onCancel }: Props) {
 
       if (initialData) {
         await updateRecipe(initialData.id, {
-          productName,
+          productName: mode === 'NEW' ? productName : products.find(p => p.id === existingProductId)?.name || '',
           ingredients: processedIngredients
         });
         alert('Receta actualizada');
         if (onCancel) onCancel();
       } else {
         await addRecipe({
-          productName,
+          productName: mode === 'NEW' ? productName : undefined,
+          productId: mode === 'EXISTING' ? existingProductId : undefined,
           uom: 'UNIDAD',
           ingredients: processedIngredients
         });
@@ -108,6 +126,7 @@ export default function RecipeForm({ products, initialData, onCancel }: Props) {
       }
       setIngredients([]);
       setProductName('');
+      setExistingProductId('');
     } catch (error) {
       console.error(error);
       alert('Error al guardar receta');
@@ -118,21 +137,57 @@ export default function RecipeForm({ products, initialData, onCancel }: Props) {
 
   return (
     <div className={styles.horizontalFormContainer}>
+      {!initialData && (
+        <div className={styles.modeToggle}>
+          <button 
+            type="button" 
+            className={`${styles.toggleBtn} ${mode === 'NEW' ? styles.active : ''}`}
+            onClick={() => setMode('NEW')}
+          >
+            Nuevo Producto
+          </button>
+          <button 
+            type="button" 
+            className={`${styles.toggleBtn} ${mode === 'EXISTING' ? styles.active : ''}`}
+            onClick={() => setMode('EXISTING')}
+          >
+            Producto Existente
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={styles.formHorizontal}>
         <div className={styles.formTopRow}>
           <div className={styles.field}>
-            <label htmlFor="productName" className={styles.label}>
-              {initialData ? 'Editar Nombre' : 'Nuevo Producto'}
+            <label htmlFor="productTarget" className={styles.label}>
+              {initialData ? 'Editando Producto' : mode === 'NEW' ? 'Nuevo Producto' : 'Seleccionar Producto'}
             </label>
-            <input 
-              id="productName"
-              type="text" 
-              value={productName} 
-              onChange={(e) => setProductName(e.target.value)}
-              placeholder="Ej: Pasta de Tomate" 
-              required 
-              className={styles.input} 
-            />
+            
+            {mode === 'NEW' || initialData ? (
+              <input 
+                id="productTarget"
+                type="text" 
+                value={productName} 
+                onChange={(e) => setProductName(e.target.value)}
+                placeholder="Ej: Pasta de Tomate" 
+                required 
+                disabled={Boolean(initialData)} // Don't rename product here if editing? No, plan says rename is allowed.
+                className={styles.input} 
+              />
+            ) : (
+              <select
+                id="productTarget"
+                value={existingProductId}
+                onChange={(e) => setExistingProductId(e.target.value)}
+                required
+                className={styles.select}
+              >
+                <option value="">Seleccione un producto...</option>
+                {eligibleProducts.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 

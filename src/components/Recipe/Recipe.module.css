@@ -32,7 +32,8 @@
   min-width: 200px;
 }
 
-.field select, .field input {
+.field select,
+.field input {
   width: 100%;
   padding: 0.6rem 0.75rem;
   border-radius: 10px;
@@ -118,7 +119,8 @@
   flex-direction: column;
 }
 
-.ingredientRow select, .ingredientRow input {
+.ingredientRow select,
+.ingredientRow input {
   width: 100%;
 }
 
@@ -128,7 +130,8 @@
   align-items: center;
 }
 
-.editBtn, .deleteBtn {
+.editBtn,
+.deleteBtn {
   display: flex;
   align-items: center;
   justify-content: center;

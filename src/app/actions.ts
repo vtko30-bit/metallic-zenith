@@ -167,7 +167,7 @@ export async function getRecipes() {
 }
 
 export async function addRecipe(data: {
-  productName: string;
+  productName?: string;
   productId?: string;
   uom: string;
   ingredients: { productId: string; quantity: number }[];
@@ -177,13 +177,8 @@ export async function addRecipe(data: {
   const result = await prisma.$transaction(async (tx) => {
     let finalProductId = data.productId;
 
-    if (finalProductId) {
-      // 1. Update existing product to be a finished good
-      await tx.product.update({
-        where: { id: finalProductId },
-        data: { isFinishedGood: true }
-      });
-    } else {
+    if (!finalProductId) {
+      if (!data.productName) throw new Error("Se requiere nombre para nuevo producto");
       // 1. Create the product
       const product = await tx.product.create({
         data: {
@@ -195,6 +190,12 @@ export async function addRecipe(data: {
         }
       });
       finalProductId = product.id;
+    } else {
+      // 1b. Mark existing product as finished good
+      await tx.product.update({
+        where: { id: finalProductId },
+        data: { isFinishedGood: true }
+      });
     }
 
     // 2. Create the recipe linked to the product
