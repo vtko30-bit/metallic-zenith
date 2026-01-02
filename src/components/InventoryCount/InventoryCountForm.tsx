@@ -21,6 +21,14 @@ export default function InventoryCountForm({ warehouses, products, stock }: Prop
     setCounts({ ...counts, [productId]: Number(value) });
   };
 
+  const handleNewInventory = () => {
+    if (Object.keys(counts).length > 0 && !confirm('Tienes cambios sin guardar. ¿Seguro que deseas iniciar un nuevo inventario?')) {
+      return;
+    }
+    setSelectedWarehouse('');
+    setCounts({});
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedWarehouse) return alert('Seleccione una bodega');
@@ -48,19 +56,38 @@ export default function InventoryCountForm({ warehouses, products, stock }: Prop
 
   return (
     <div className={styles.container}>
-      <div className={styles.warehouseSelector}>
-        <label>Seleccionar Bodega para Captura:</label>
-        <select 
-          value={selectedWarehouse} 
-          onChange={(e) => setSelectedWarehouse(e.target.value)}
-          className={styles.select}
+      <div className={styles.topActions}>
+        <button 
+          onClick={handleNewInventory} 
+          className={styles.newBtn}
         >
-          <option value="">-- Seleccione Bodega --</option>
-          {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-        </select>
+          <CheckCircle size={18} />
+          Nuevo Inventario
+        </button>
       </div>
 
-      {selectedWarehouse && (
+      {!selectedWarehouse ? (
+        <div className={styles.setupCard}>
+          <header className={styles.setupHeader}>
+            <AlertTriangle size={24} className={styles.warningIcon} />
+            <div>
+              <h3>Iniciar Toma de Inventario</h3>
+              <p>Selecciona una bodega para generar la lista de conteo actual</p>
+            </div>
+          </header>
+          <div className={styles.warehouseSelector}>
+            <label>Seleccionar Bodega:</label>
+            <select 
+              value={selectedWarehouse} 
+              onChange={(e) => setSelectedWarehouse(e.target.value)}
+              className={styles.select}
+            >
+              <option value="">-- Seleccione Bodega --</option>
+              {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </select>
+          </div>
+        </div>
+      ) : (
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
