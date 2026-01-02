@@ -30,6 +30,8 @@ export interface Movement {
   type: MovementType;
   originWarehouseId: string | null;
   destinationWarehouseId: string | null;
+  userId?: string | null;
+  userName?: string;
   items: MovementItem[];
   date: string;
   reference: string | null;

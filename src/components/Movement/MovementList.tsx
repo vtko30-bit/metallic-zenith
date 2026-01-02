@@ -7,7 +7,8 @@ import {
   ArrowLeftCircle, 
   RefreshCcw, 
   Calendar,
-  Tag
+  Tag,
+  User as UserIcon
 } from 'lucide-react';
 
 interface Props {
@@ -38,6 +39,7 @@ export default function MovementList({ movements, products, warehouses }: Props)
               <th>Producto</th>
               <th>Cant.</th>
               <th>Ref.</th>
+              <th>Responsable</th>
             </tr>
           </thead>
           <tbody>
@@ -67,6 +69,12 @@ export default function MovementList({ movements, products, warehouses }: Props)
                   </td>
                   <td className={styles.quantityCell}>{item.quantity}</td>
                   <td className={styles.refCell}>{m.reference || '-'}</td>
+                  <td>
+                    <div className={styles.userCell}>
+                      <UserIcon size={12} />
+                      {m.userName}
+                    </div>
+                  </td>
                 </tr>
               );
             })}

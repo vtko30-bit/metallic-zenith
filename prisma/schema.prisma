@@ -9,13 +9,14 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          String    @default("STAFF") // ADMIN, STAFF
+  role          String     @default("STAFF") // ADMIN, STAFF
+  movements     Movement[]
   accounts      Account[]
   sessions      Session[]
 }
@@ -87,9 +88,11 @@ model Movement {
   type                   String // SQLite compatibility
   originWarehouseId      String?
   destinationWarehouseId String?
+  userId                 String?
   date                   DateTime @default(now())
   reference              String?
 
+  user                 User?          @relation(fields: [userId], references: [id])
   originWarehouse      Warehouse?     @relation("OriginWarehouse", fields: [originWarehouseId], references: [id])
   destinationWarehouse Warehouse?     @relation("DestinationWarehouse", fields: [destinationWarehouseId], references: [id])
   items                MovementItem[]

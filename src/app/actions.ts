@@ -12,6 +12,11 @@ async function isAdmin() {
   return (session?.user as any)?.role === 'ADMIN';
 }
 
+async function getUserId() {
+  const session = await getServerSession(authOptions);
+  return (session?.user as any)?.id;
+}
+
 // Warehouse Actions
 export async function getWarehouses() {
   return await prisma.warehouse.findMany({
@@ -77,13 +82,17 @@ export async function importProducts(productsData: any[]) {
 export async function getMovements() {
   const movements = await prisma.movement.findMany({
     include: {
-      items: true
+      items: true,
+      user: {
+        select: { name: true }
+      }
     },
     orderBy: { date: 'desc' }
   });
   return movements.map(m => ({
     ...m,
-    date: m.date.toISOString()
+    date: m.date.toISOString(),
+    userName: m.user?.name || 'Sistema'
   }));
 }
 
@@ -94,11 +103,14 @@ export async function addMovement(data: {
   reference?: string;
   items: { productId: string; quantity: number }[];
 }) {
+  const userId = await getUserId();
+  
   const movement = await prisma.movement.create({
     data: {
       type: data.type,
       originWarehouseId: data.originWarehouseId,
       destinationWarehouseId: data.destinationWarehouseId,
+      userId,
       reference: data.reference,
       items: {
         create: data.items.map(item => ({
@@ -204,6 +216,8 @@ export async function produceProduct(productId: string, quantity: number, wareho
   
   if (!recipe) throw new Error("No existe receta para este producto");
 
+  const userId = await getUserId();
+
   // Create movements within a transaction
   return await prisma.$transaction(async (tx) => {
     // 1. Consumption
@@ -211,6 +225,7 @@ export async function produceProduct(productId: string, quantity: number, wareho
       data: {
         type: 'PRODUCCION',
         originWarehouseId: warehouseId,
+        userId,
         reference: `Consumo para producción de ${quantity} uds`,
         items: {
           create: recipe.ingredients.map(ing => ({
@@ -226,6 +241,7 @@ export async function produceProduct(productId: string, quantity: number, wareho
       data: {
         type: 'PRODUCCION',
         destinationWarehouseId: warehouseId,
+        userId,
         reference: `Ingreso por producción`,
         items: {
           create: [{ productId, quantity }]
@@ -250,6 +266,8 @@ export async function updateStockAdjustment(warehouseId: string, itemAdjustments
 
   if (filtered.length === 0) return;
 
+  const userId = await getUserId();
+
   await prisma.$transaction(async (tx) => {
     for (const adj of filtered) {
       const diff = adj.physicalQty - adj.currentQty;
@@ -258,6 +276,7 @@ export async function updateStockAdjustment(warehouseId: string, itemAdjustments
           type: 'AJUSTE',
           originWarehouseId: diff < 0 ? warehouseId : undefined,
           destinationWarehouseId: diff > 0 ? warehouseId : undefined,
+          userId,
           reference: `Ajuste por toma de inventario (Físico: ${adj.physicalQty}, Sistema: ${adj.currentQty})`,
           items: {
             create: [{ productId: adj.productId, quantity: Math.abs(diff) }]
