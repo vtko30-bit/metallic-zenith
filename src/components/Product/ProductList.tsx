@@ -73,7 +73,7 @@ export default function ProductList({ initialProducts, onProductClick }: Props) 
                     <span className={styles.rawBadge}>Insumo</span>
                   )}
                 </td>
-                <td className={styles.priceCell}>${p.price?.toLocaleString() || '0'}</td>
+                <td className={styles.priceCell}>${p.price?.toLocaleString('es-CL') || '0'}</td>
                 <td className={styles.minStockCell}>
                   {p.minStock} {p.uom.toLowerCase()}
                 </td>

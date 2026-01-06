@@ -1,14 +1,15 @@
-import { getStockByWarehouse, getProducts, getWarehouses } from '@/app/actions';
+import { getStockByWarehouse, getProducts, getWarehouses, getInventoryCounts } from '@/app/actions';
 import styles from './page.module.css';
 import InventoryCountForm from '@/components/InventoryCount/InventoryCountForm';
 
 export const dynamic = 'force-dynamic';
 
 export default async function InventoryCountPage() {
-  const [stock, products, warehouses] = await Promise.all([
+  const [stock, products, warehouses, history] = await Promise.all([
     getStockByWarehouse(),
     getProducts(),
-    getWarehouses()
+    getWarehouses(),
+    getInventoryCounts()
   ]);
 
   return (
@@ -25,6 +26,7 @@ export default async function InventoryCountPage() {
           warehouses={warehouses} 
           products={products} 
           stock={stock} 
+          initialHistory={history}
         />
       </div>
     </div>

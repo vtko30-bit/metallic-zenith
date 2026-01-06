@@ -4,99 +4,262 @@
   gap: var(--space-lg);
 }
 
-.topActions {
+/* List View */
+.listContainer {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: var(--space-sm);
+}
+
+.listHeader h3 {
+  font-size: 1.25rem;
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 .newBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  background: white;
-  color: var(--primary);
-  border: 1px solid var(--primary);
-  border-radius: 10px;
-  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
   font-size: 0.9rem;
   transition: var(--transition);
+  box-shadow: var(--shadow-sm);
 }
 
 .newBtn:hover {
-  background: var(--primary-light);
-  transform: translateY(-1px);
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
+.emptyState {
+  background: white;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+/* Setup View */
 .setupCard {
   background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 2.5rem;
+  padding: 3rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-lg);
-  box-shadow: var(--shadow-sm);
+  gap: 2rem;
+  box-shadow: var(--shadow-lg);
   max-width: 600px;
   margin: 2rem auto;
 }
 
 .setupHeader {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+  text-align: left;
+}
+
+.headerIcon {
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 0.75rem;
+  border-radius: 12px;
 }
 
 .setupHeader h3 {
   font-size: 1.5rem;
+  margin: 0;
   color: var(--text-main);
-  margin-bottom: 0.5rem;
 }
 
 .setupHeader p {
+  margin: 0.25rem 0 0;
   color: var(--text-muted);
 }
 
-.warningIcon {
-  color: var(--accent);
+.setupForm {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.warehouseSelector {
+.fieldGroup {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: var(--space-md);
+}
+
+.field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-width: 300px;
 }
 
-@media (max-width: 768px) {
-  .warehouseSelector {
-    max-width: 100%;
-  }
-}
-
-.warehouseSelector label {
-  font-size: 0.9rem;
-  font-weight: 600;
+.field label {
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.select {
-  padding: 0.75rem;
-  border-radius: 8px;
-  background: white;
+.input, .select {
+  padding: 0.8rem;
   border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.input:focus, .select:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: white;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cancelBtn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.cancelBtn:hover {
+  background: #f8fafc;
   color: var(--text-main);
 }
 
+.createBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 2rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.createBtn:hover {
+  background: var(--primary-hover);
+}
+
+/* Sheet View */
+.sheetContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.sheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1.25rem var(--space-lg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.sheetInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.backBtn {
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  border-radius: 10px;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.backBtn:hover {
+  background: white;
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.sheetInfo h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.sheetInfo p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  background: var(--secondary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.saveBtn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Table Styles */
 .tableWrapper {
-  overflow-x: auto;
+  background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: white;
+  overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
 
@@ -106,80 +269,106 @@
 }
 
 .table th {
-  text-align: left;
-  padding: var(--space-md);
   background: #f8fafc;
-  font-size: 0.85rem;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
   color: var(--text-muted);
+  letter-spacing: 0.05em;
   border-bottom: 2px solid var(--border);
 }
 
 .table td {
-  padding: var(--space-md);
+  padding: 1rem;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 
-.pName {
+.dateCell, .userCell, .itemCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.pInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pInfo span {
   font-weight: 600;
 }
 
-.pName small {
+.pInfo small {
   color: var(--text-muted);
-  font-weight: 400;
-}
-
-.currentQty {
-  color: var(--primary);
-  font-weight: 700;
-}
-
-.input {
-  width: 100px;
-  padding: 0.5rem;
-  border-radius: 6px;
   background: var(--bg-main);
-  border: 1px solid var(--border);
-  color: var(--text-main);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.systemQty {
   font-weight: 700;
+  color: var(--primary);
+}
+
+.sheetInput {
+  width: 120px;
+  padding: 0.6rem;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-align: right;
+  transition: var(--transition);
+}
+
+.sheetInput:focus {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  outline: none;
 }
 
 .positive {
   color: var(--secondary);
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .negative {
   color: var(--danger);
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.submitBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--primary);
-  color: white;
-  border-radius: 8px;
-  font-weight: 700;
-  margin-top: var(--space-lg);
-  width: fit-content;
+.viewBtn {
+  padding: 0.4rem 0.8rem;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: var(--transition);
 }
 
-.submitBtn:hover:not(:disabled) {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
+.viewBtn:hover {
+  background: white;
+  color: var(--primary);
+  border-color: var(--primary);
 }
 
 @media (max-width: 768px) {
-  .submitBtn {
-    width: 100%;
+  .fieldGroup {
+    grid-template-columns: 1fr;
+  }
+  
+  .sheetInput {
+    width: 80px;
+  }
+  
+  .setupCard {
+    padding: 1.5rem;
+    margin: 1rem;
   }
 }

@@ -61,7 +61,14 @@ export async function addProduct(data: {
   return product;
 }
 
-export async function importProducts(productsData: any[]) {
+export async function importProducts(productsData: { 
+  name: string; 
+  description?: string; 
+  uom: string; 
+  minStock: number; 
+  price: number; 
+  isFinishedGood: boolean; 
+}[]) {
   if (!(await isAdmin())) throw new Error("Acceso denegado: Se requieren permisos de Administrador");
 
   const created = await prisma.product.createMany({
@@ -456,4 +463,84 @@ export async function deleteUser(id: string) {
   });
   
   revalidatePath('/users');
+}
+
+// Inventory Count History & Recording
+export async function getInventoryCounts() {
+  const counts = await prisma.inventoryCount.findMany({
+    include: {
+      warehouse: true,
+      user: {
+        select: { name: true }
+      },
+      _count: {
+        select: { items: true }
+      }
+    },
+    orderBy: { date: 'desc' }
+  });
+
+  return counts.map(c => ({
+    ...c,
+    date: c.date.toISOString(),
+    userName: c.user?.name || 'Sistema',
+    warehouseName: c.warehouse.name,
+    itemCount: c._count.items
+  }));
+}
+
+export async function recordInventoryCount(data: {
+  warehouseId: string;
+  date: Date;
+  items: { productId: string; expectedQty: number; physicalQty: number }[];
+}) {
+  const userId = await getUserId();
+  if (!userId) throw new Error("Usuario no autenticado");
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Create the Inventory Count session
+    const countSession = await tx.inventoryCount.create({
+      data: {
+        warehouseId: data.warehouseId,
+        userId,
+        date: data.date,
+        items: {
+          create: data.items.map(it => ({
+            productId: it.productId,
+            expectedQty: it.expectedQty,
+            physicalQty: it.physicalQty
+          }))
+        }
+      }
+    });
+
+    // 2. Filter items that need adjustment
+    const toAdjust = data.items.filter(it => it.physicalQty !== it.expectedQty);
+
+    // 3. Create individual AJUSTE movements for each discrepancy
+    for (const adj of toAdjust) {
+      const diff = adj.physicalQty - adj.expectedQty;
+      await tx.movement.create({
+        data: {
+          type: 'AJUSTE',
+          originWarehouseId: diff < 0 ? data.warehouseId : undefined,
+          destinationWarehouseId: diff > 0 ? data.warehouseId : undefined,
+          userId,
+          reference: `Ajuste automático por Toma de Inventario #${countSession.id.slice(0,8)}`,
+          items: {
+            create: [{ productId: adj.productId, quantity: Math.abs(diff) }]
+          }
+        }
+      });
+    }
+
+    return countSession;
+  });
+
+  revalidatePath('/movements');
+  revalidatePath('/inventory');
+  revalidatePath('/inventory-count');
+  revalidatePath('/');
+  
+  return result;
 }

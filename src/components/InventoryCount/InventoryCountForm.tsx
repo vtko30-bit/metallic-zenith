@@ -2,138 +2,101 @@
 
 import { useState } from 'react';
 import { Warehouse, Product } from '@/types';
-import { updateStockAdjustment } from '@/app/actions';
+import { recordInventoryCount } from '@/app/actions';
 import styles from './InventoryCount.module.css';
-import { Save, AlertTriangle, CheckCircle } from 'lucide-react';
+import InventoryList from './InventoryList';
+import InventorySetupForm from './InventorySetupForm';
+import InventorySheet from './InventorySheet';
 
-interface Props {
-  warehouses: Warehouse[];
-  products: Product[];
-  stock: Record<string, Record<string, number>>;
+interface InventoryCountSummary {
+  id: string;
+  warehouseId: string;
+  warehouseName: string;
+  userId: string;
+  userName: string;
+  date: string;
+  itemCount: number;
 }
 
-export default function InventoryCountForm({ warehouses, products, stock }: Props) {
-  const [selectedWarehouse, setSelectedWarehouse] = useState('');
-  const [counts, setCounts] = useState<Record<string, number>>({});
+interface Props {
+  readonly warehouses: Warehouse[];
+  readonly products: Product[];
+  readonly stock: Record<string, Record<string, number>>;
+  readonly initialHistory: InventoryCountSummary[];
+}
+
+export default function InventoryCountForm({ warehouses, products, stock, initialHistory }: Props) {
+  const [view, setView] = useState<'LIST' | 'SETUP' | 'SHEET'>('LIST');
+  const [setupData, setSetupData] = useState<{ warehouseId: string; date: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState(initialHistory);
 
-  const handleCountChange = (productId: string, value: string) => {
-    setCounts({ ...counts, [productId]: Number(value) });
+  const handleCreateSetup = (data: { warehouseId: string; date: string }) => {
+    setSetupData(data);
+    setView('SHEET');
   };
 
-  const handleNewInventory = () => {
-    if (Object.keys(counts).length > 0 && !confirm('Tienes cambios sin guardar. ¿Seguro que deseas iniciar un nuevo inventario?')) {
-      return;
-    }
-    setSelectedWarehouse('');
-    setCounts({});
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedWarehouse) return alert('Seleccione una bodega');
-
+  const handleSaveInventory = async (items: { productId: string; expectedQty: number; physicalQty: number }[]) => {
+    if (!setupData) return;
+    
     setLoading(true);
-    const adjustments = products.map(p => ({
-      productId: p.id,
-      physicalQty: counts[p.id] !== undefined ? counts[p.id] : (stock[selectedWarehouse]?.[p.id] || 0),
-      currentQty: stock[selectedWarehouse]?.[p.id] || 0
-    }));
-
     try {
-      await updateStockAdjustment(selectedWarehouse, adjustments);
-      alert('Ajuste de inventario completado');
-      setCounts({});
+      const result = await recordInventoryCount({
+        warehouseId: setupData.warehouseId,
+        date: new Date(setupData.date),
+        items
+      });
+      
+      // Update local history (simplified, better to revalidate)
+      const newCount: InventoryCountSummary = {
+        id: result.id,
+        warehouseId: setupData.warehouseId,
+        warehouseName: warehouses.find(w => w.id === setupData.warehouseId)?.name || 'N/A',
+        userId: '',
+        userName: 'Yo', // Placeholder for current session
+        date: setupData.date,
+        itemCount: items.length
+      };
+      
+      setHistory([newCount, ...history]);
+      alert('Toma de inventario registrada y ajustes realizados con éxito.');
+      setView('LIST');
+      setSetupData(null);
     } catch (error) {
       console.error(error);
-      alert('Error al procesar el ajuste');
+      alert('Error al registrar la toma de inventario');
     } finally {
       setLoading(false);
     }
   };
 
-  const warehouseStock = stock[selectedWarehouse] || {};
-
   return (
     <div className={styles.container}>
-      <div className={styles.topActions}>
-        <button 
-          onClick={handleNewInventory} 
-          className={styles.newBtn}
-        >
-          <CheckCircle size={18} />
-          Nuevo Inventario
-        </button>
-      </div>
+      {view === 'LIST' && (
+        <InventoryList 
+          counts={history} 
+          onNew={() => setView('SETUP')} 
+        />
+      )}
 
-      {!selectedWarehouse ? (
-        <div className={styles.setupCard}>
-          <header className={styles.setupHeader}>
-            <AlertTriangle size={24} className={styles.warningIcon} />
-            <div>
-              <h3>Iniciar Toma de Inventario</h3>
-              <p>Selecciona una bodega para generar la lista de conteo actual</p>
-            </div>
-          </header>
-          <div className={styles.warehouseSelector}>
-            <label>Seleccionar Bodega:</label>
-            <select 
-              value={selectedWarehouse} 
-              onChange={(e) => setSelectedWarehouse(e.target.value)}
-              className={styles.select}
-            >
-              <option value="">-- Seleccione Bodega --</option>
-              {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-            </select>
-          </div>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th>Stock Sistema</th>
-                  <th>Stock Físico (Real)</th>
-                  <th>Diferencia</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map(p => {
-                  const current = warehouseStock[p.id] || 0;
-                  const physical = counts[p.id] !== undefined ? counts[p.id] : current;
-                  const diff = physical - current;
+      {view === 'SETUP' && (
+        <InventorySetupForm 
+          warehouses={warehouses}
+          onCreate={handleCreateSetup}
+          onCancel={() => setView('LIST')}
+        />
+      )}
 
-                  return (
-                    <tr key={p.id}>
-                      <td className={styles.pName}>{p.name} <small>({p.uom})</small></td>
-                      <td className={styles.currentQty}>{current}</td>
-                      <td>
-                        <input 
-                          type="number" 
-                          step="0.001"
-                          value={counts[p.id] ?? current}
-                          onChange={(e) => handleCountChange(p.id, e.target.value)}
-                          className={styles.input}
-                        />
-                      </td>
-                      <td className={diff === 0 ? '' : diff > 0 ? styles.positive : styles.negative}>
-                        {diff === 0 ? '-' : diff > 0 ? `+${diff}` : diff}
-                        {diff !== 0 && (diff > 0 ? <CheckCircle size={14} /> : <AlertTriangle size={14} />)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <button type="submit" disabled={loading} className={styles.submitBtn}>
-            <Save size={18} />
-            {loading ? 'Guardando Ajustes...' : 'Confirmar y Ajustar Inventario'}
-          </button>
-        </form>
+      {view === 'SHEET' && setupData && (
+        <InventorySheet 
+          warehouse={warehouses.find(w => w.id === setupData.warehouseId)!}
+          date={setupData.date}
+          products={products}
+          currentStock={stock[setupData.warehouseId] || {}}
+          onSave={handleSaveInventory}
+          onBack={() => setView('SETUP')}
+          loading={loading}
+        />
       )}
     </div>
   );

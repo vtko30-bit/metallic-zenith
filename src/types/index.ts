@@ -52,6 +52,23 @@ export interface Recipe {
   ingredients: RecipeIngredient[];
 }
 
+export interface InventoryCount {
+  id: string;
+  warehouseId: string;
+  userId: string;
+  date: string;
+  notes: string | null;
+  items?: InventoryCountItem[];
+}
+
+export interface InventoryCountItem {
+  id: string;
+  inventoryCountId: string;
+  productId: string;
+  expectedQty: number;
+  physicalQty: number;
+}
+
 export interface InventoryState {
   warehouses: Warehouse[];
   products: Product[];
